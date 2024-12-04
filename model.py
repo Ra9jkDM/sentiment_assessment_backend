@@ -1,5 +1,7 @@
 from __future__ import annotations
+import asyncio
 
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import create_engine, Column, Integer, Float, String, Date, ForeignKey, select, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship, mapped_column, Mapped, relationship, backref
 
@@ -8,6 +10,7 @@ from typing import List
 from datetime import datetime, date
 
 from os import environ
+
 
 
 USERNAME = environ.get("database_username") 
@@ -20,10 +23,11 @@ DATABASE = environ.get("database_name")
 DIALECT = environ.get("database_dialect")
 
 
-ENGINE = create_engine(f"{DIALECT}://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
+ENGINE = create_async_engine(f"{DIALECT}://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
 
 
 Base = declarative_base()
+new_session = async_sessionmaker(ENGINE, expire_on_commit=False)
 
 class User(Base):
     __tablename__ = "user"
@@ -34,20 +38,30 @@ class User(Base):
     salt: Mapped[String] = mapped_column(String(30), nullable=False)
     
     firstname: Mapped[String] = mapped_column(String(100), nullable=False)
-    lastname: Mapped[String] = mapped_column(String(100))
+    lastname: Mapped[String] = mapped_column(String(100), nullable=True)
     is_active: Mapped[Boolean] = mapped_column(Boolean, default=True)
     
     # role: Mapped["Role"] = relationship()
     
-def create_test_data():
-    with Session(autoflush=True, bind=ENGINE) as db:
-        db.add(User(username='bob1@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid'))
-        db.commit()
+async def create_test_data():
+    async with AsyncSession(ENGINE, expire_on_commit=False) as db:
+        db.add(User(username='bob@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid'))
+        db.add(User(username='ann@mail.com', password='9nw', salt='c', firstname='Ann'))
         
-def main():
-    Base.metadata.create_all(bind=ENGINE)
+        await db.commit()
+        x = await db.execute(select(User))
+        print(*x.all())
+        
+async def main():
+    async with ENGINE.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
     
-    create_test_data()
+    await create_test_data()
+    
+async def get_session():
+    async with new_session() as session:
+        yield session  
     
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
