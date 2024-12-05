@@ -18,10 +18,7 @@ class UserLoginModel(BaseModel):
     password: str
     
 class UserSchema(BaseModel):
-    id: int
     username: str
-    password: str
-    salt: str
     firstname: str
     lastname: str | None
     is_active: bool
@@ -45,28 +42,38 @@ async def logout(id: Annotated[str, Depends(is_login)]):
     res = JSONResponse(content={'status': 'success'})
     return res
     
+def to_model(target_cls: BaseModel, obj: list[model.Base] | model.Base):
+    if isinstance(obj, list): 
+        result = [parse_obj_as(target_cls, i.__dict__) for i in obj]
+    else:
+        result = parse_obj_as(target_cls, obj.__dict__)
+    return result
+
+def to_sql(target_cls: model.Base, obj):
+    return target_cls(**obj.dict())
+
 @app.get('/info')
 async def info(id: Annotated[str, Depends(is_login)], session: sessionDepends):
     query = model.select(model.User)
     result = await session.execute(query)
-    users = result.all()
-    for i in users:
-        print(i) # users[0].username
-    print(users, dir(users[0]), users[0]._to_tuple_instance())
-    return 0
-    # users = parse_obj_as(UserSchema, users)
-    # return list(users)#{'info': {'name': "Bob", "id":"98"}, 'users': users}
-
+    users = result.scalars().all()
+    print(users[0].username, users[0].__dict__)
+    users = to_model(UserSchema, users)
+    user = to_model(UserSchema, users[0])
+    print(user)
+    return users
+   
 @app.get('/info_add')
 async def info(id: Annotated[str, Depends(is_login)], session: sessionDepends):
-    session.add(UserSchema(id=101, username='ann1@mail.com', password='9nw', 
-                           salt='c', lastname='__', firstname='Ann', is_active=False))
+    user = UserSchema(username='Qann2@mail.com', lastname='Null', firstname='Rob', is_active=False)
+    
+    user = to_sql(model.User, user)
+    user.password = 'n111'
+    user.salt = 'salt1'
+    
+    session.add(user)
     await session.commit()
     return {'status': 'success'}
 
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)
-    
-# try https://sqlmodel.tiangolo.com/tutorial/create-db-and-table/#engine-database-url
-# from sqlmodel import Field, SQLModel
-# https://github.com/fastapi/sqlmodel
