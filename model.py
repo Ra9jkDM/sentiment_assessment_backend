@@ -1,8 +1,10 @@
 from __future__ import annotations
 import asyncio
 
+
+from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import create_engine, Column, Integer, Float, String, Date, ForeignKey, select, Boolean
+from sqlalchemy import create_engine, Column, Integer, Float, String, Date, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship, mapped_column, Mapped, relationship, backref
 
 
@@ -50,7 +52,9 @@ async def create_test_data():
         
         await db.commit()
         x = await db.execute(select(User))
-        print(*x.all())
+        x = x.scalars().all()
+        print(x, dir(x[0]))
+        print(x[0].username)
         
 async def main():
     async with ENGINE.begin() as conn:

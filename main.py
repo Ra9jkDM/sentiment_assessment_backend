@@ -7,6 +7,7 @@ from typing import List
 import uvicorn
 
 import model
+from model import User
 
 app = FastAPI()
 
@@ -49,9 +50,12 @@ async def info(id: Annotated[str, Depends(is_login)], session: sessionDepends):
     query = model.select(model.User)
     result = await session.execute(query)
     users = result.all()
-    print(users)
+    for i in users:
+        print(i) # users[0].username
+    print(users, dir(users[0]), users[0]._to_tuple_instance())
+    return 0
     # users = parse_obj_as(UserSchema, users)
-    return {'info': {'name': "Bob", "id":"98"}, 'users': users}
+    # return list(users)#{'info': {'name': "Bob", "id":"98"}, 'users': users}
 
 @app.get('/info_add')
 async def info(id: Annotated[str, Depends(is_login)], session: sessionDepends):
