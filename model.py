@@ -34,8 +34,7 @@ new_session = async_sessionmaker(ENGINE, expire_on_commit=False)
 class User(Base):
     __tablename__ = "user"
     
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True)
-    username: Mapped[String] = mapped_column(String(100), unique=True, nullable=False)
+    username: Mapped[String] = mapped_column(String(100), primary_key=True, unique=True, nullable=False)
     password: Mapped[String] = mapped_column(String(100), nullable=False)
     salt: Mapped[String] = mapped_column(String(30), nullable=False)
     
