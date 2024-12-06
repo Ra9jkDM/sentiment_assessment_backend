@@ -4,7 +4,7 @@ import asyncio
 
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import create_engine, Column, Integer, Float, String, Date, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, Float, String, Date, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship, mapped_column, Mapped, relationship, backref
 
 
@@ -43,6 +43,11 @@ class User(Base):
     is_active: Mapped[Boolean] = mapped_column(Boolean, default=True)
     
     # role: Mapped["Role"] = relationship()
+    
+class AuthenticationString(Base):
+    __tablename__ = ' authentication_string'
+    token: Mapped[String] = mapped_column(String(200), primary_key=True, unique=True)
+    expires_date: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     
 async def create_test_data():
     async with AsyncSession(ENGINE, expire_on_commit=False) as db:

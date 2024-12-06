@@ -33,10 +33,3 @@ if __name__ == '__main__':
     
     passwd = 'c4107fcfdf7546a2caa2464a4fbaeda4b60b11ece024c161e46a33b323ec95e2'
     print(compare_passwords(passwd, 'paswd1', 'zSC"vu|so-'))
-
-# hash_object = hashlib.sha256(b'Hello World22')
-# hex_dig = hash_object.hexdigest()
-# print(len(hex_dig), hex_dig)
-
-# username:password:salt
-# server:password:salt

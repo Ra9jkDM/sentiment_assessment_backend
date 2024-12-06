@@ -9,7 +9,7 @@ import string
 key = environ.get('server_key')
 nonce = environ.get('server_nonce')
 all_symbols = string.ascii_uppercase + string.ascii_lowercase + string.digits
-print(len(nonce), len(base64.b64decode(nonce)))
+# print(len(nonce), len(base64.b64decode(nonce)))
 
 def create_cipher():
     return AES.new(key.encode('utf-8'), AES.MODE_EAX, nonce=base64.b64decode(nonce.encode('utf-8')+b'=='))
@@ -23,9 +23,7 @@ def encode(username):
 def decode(data):
     cipher = create_cipher()
     username = data.split('.')[0]
-    print(username)
     username = base64.b64decode(username)
-    print(username)
     plaintext = cipher.decrypt(username)
     return plaintext.decode('utf-8')
 
@@ -40,7 +38,8 @@ if __name__ == '__main__':
     print('Nonce', nonce)
     
     text = encode('bob@c.ts')
-    print(text)
+    # text = encode('1'*100)
+    print(text, len(text.split('.')[0]))
     text = decode(text)
     print(text)
     
@@ -49,20 +48,11 @@ if __name__ == '__main__':
     #     c = create_cipher()
     #     ciphertext, tag = c.encrypt_and_digest('123'.encode('utf-8'))
     
-    # print(i)
-    # n = b'\xd1\x10S)\xfc\xb5\xb5Y\xfb1\xda\xfc\xf3\xa77\xa6'
-    # n = base64.b64encode(n)
-    # print(len(n))
-    # key = 'Y4noYCVmQjFr5eHV67gcI6hmwQTLm+yc'.encode('utf-8')#b'Sixteen byte key'
-    # cipher = AES.new(key, AES.MODE_EAX, base64.b64decode(n)) #, b'`\x03o\xd2^MN\xee\xed6\xdb\xa4\x19\xa0\xd1\xb4')
-    # data = b'123tt'
-    # nonce = cipher.nonce
-    # ciphertext, tag = cipher.encrypt_and_digest(data)
-    # print(ciphertext, nonce)
-    
-    # cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
-    # plaintext = cipher.decrypt(ciphertext)
-    # print(plaintext, tag)
-    # print(cipher.verify(tag))
 
 
+# Структура: username.[(random_string)(date_time)(random_string)]
+# закодировано с помощью криптографии (с ключем)
+
+# вторую часть храним в DB и проверяем ее на возможность подмены
+# 1 часть, чтобы быстрее находить
+# завести таблицу в postgress и интегрировать redis

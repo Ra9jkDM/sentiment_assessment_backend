@@ -12,11 +12,50 @@ import datetime
 
 
 from password_hasher import create_new_hash, compare_passwords
+import encoder_session_cookies as session_str
+import redis_model
 
 app = FastAPI()
 
 sessionDepends = Annotated[model.AsyncSession, Depends(model.get_session)]
+authCookie = Annotated[str | None, Cookie()]
+redisDepends = Annotated[redis_model.redis.Redis, Depends(redis_model.get_client)]
 
+async def is_login(redis: redisDepends, auth: authCookie = None):
+    await redis_model.set_data(redis, 'test', 'df')
+    print(await redis_model.get_data(redis, '1test'))
+    if auth:
+        try:
+            username = get_username(auth)
+            if await check_cookie(auth, redis):
+                return username
+        except:
+            pass
+    raise HTTPException(403, 'Not authorized')
+
+def get_username(cookie):
+    username = cookie.split('.')[0]
+    username = session_str.decode(username)
+    return username
+
+async def check_cookie(cookie, redis: redisDepends):
+    # хранить в redis
+    
+    obj = await redis.get(cookie.decode('utf-8'))
+    # obj = await session.get(model.AuthenticationString, cookie)
+    # if obj.expires_date > datetime.datetime.utcnow():
+    #     return True
+    
+    # await session.delete(obj)
+    # await session.commit()
+    # return False
+
+loginDepends = Annotated[str, Depends(is_login)]
+
+@app.get('/logout')
+async def logout(username: loginDepends):
+    res = JSONResponse(content={'status': 'success'})
+    return res
 
 class UserLoginModel(BaseModel):
     username: EmailStr
@@ -29,7 +68,7 @@ class UserSchema(BaseModel):
     is_active: bool
     
 class UserRegistrationSchema(UserLoginModel, UserSchema):
-    salt: str
+    salt: str | None = ''
     
 def to_model(target_cls: BaseModel, obj: list[model.Base] | model.Base):
     if isinstance(obj, list): 
@@ -56,42 +95,42 @@ async def registration(session: sessionDepends, new_user: UserRegistrationSchema
     
     
 @app.post('/login')
-async def login(session: sessionDepends, login_user: UserLoginModel):
+async def login(session: sessionDepends, redis: redisDepends, login_user: UserLoginModel):
     user = await session.get(model.User, login_user.username)
     if user:
         user = to_model(UserRegistrationSchema, user)
 
         if compare_passwords(user.password,  login_user.password, user.salt):
             res = JSONResponse(content={'status': 'success'})
-            max_age = 10 * 24 * 60 * 60
-            expires_date = datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age)
-            res.set_cookie(key='auth', value='sess_key_1', max_age=max_age,
+            max_age, expires_date = get_coockie_expires_date()
+            auth = get_auth_string(user.username)
+            await save_cookie(session, auth, expires_date)
+            res.set_cookie(key='auth', value=auth, max_age=max_age,
                            expires=expires_date.strftime("%Y-%m-%d %H:%M:%S"))
             return res
     return {'status': 'failure'}
+
+def get_coockie_expires_date():
+    max_age = 10 * 24 * 60 * 60
+    expires_date = datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age)
+    return max_age, expires_date
+
+def get_auth_string(username):
+    return session_str.encode(username)
+
+async def save_cookie(session, cookie, expires_date):
+    try:
+        session.add(model.AuthenticationString(token=cookie, expires_date=expires_date))
+        await session.commit()
+    except:
+        raise HTTPException(500, 'Can not create authentication token')
     
 
-# @app.post('/login')
-# async def login(user: UserLoginModel):
-#     if user.username == 'bob' and user.password=='123':
-#         res = JSONResponse(content={'status': 'success'})
-#         res.set_cookie(key='auth', value='sess_key_1')
-#     else:
-#         res = JSONResponse(content={'status': 'failure'})
-#     return res
-
-async def is_login(auth: Annotated[str | None, Cookie()] = None):
-    if auth:
-        return 100
-    raise HTTPException(403, 'Not authorized')
     
-@app.get('/logout')
-async def logout(id: Annotated[str, Depends(is_login)]):
-    res = JSONResponse(content={'status': 'success'})
-    return res
+
 
 @app.get('/info')
-async def info(id: Annotated[str, Depends(is_login)], session: sessionDepends):
+async def info(username: loginDepends, session: sessionDepends):
     query = model.select(model.User)
     result = await session.execute(query)
     users = result.scalars().all()
