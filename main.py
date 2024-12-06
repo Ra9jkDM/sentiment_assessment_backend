@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import FastAPI, Request, HTTPException, Response, Cookie, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, EmailStr
 from pydantic import parse_obj_as
@@ -17,12 +18,26 @@ import redis_model
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:4200"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 sessionDepends = Annotated[model.AsyncSession, Depends(model.get_session)]
 authCookie = Annotated[str | None, Cookie()]
 redisDepends = Annotated[redis_model.redis.Redis, Depends(redis_model.get_client)]
 
-async def is_login(redis: redisDepends, auth: authCookie = None):
+async def is_login(redis: redisDepends, auth: authCookie):
+    print(auth)
     obj = await redis_model.get_json(redis, auth)
+    print(obj)
     if obj:
         obj = RedisCookieInfo(**obj)
         if str_to_date(obj.expire) > datetime.datetime.utcnow():
@@ -90,10 +105,10 @@ async def login(session: sessionDepends, redis: redisDepends, login_user: UserLo
         user = to_model(UserRegistrationSchema, user)
 
         if compare_passwords(user.password,  login_user.password, user.salt):
-            res = JSONResponse(content={'status': 'success'})
             max_age, expires_date = get_coockie_expires_date()
             auth = get_auth_string(user.username)
             await save_cookie(redis, auth, user.username, expires_date)
+            res = JSONResponse(content={'status': 'success', 'cookie': auth})
             res.set_cookie(key='auth', value=auth, max_age=max_age,
                            expires=expires_date)
             return res
@@ -122,18 +137,25 @@ async def save_cookie(redis, cookie, username, expires_date):
     
 
     
-
-
-@app.get('/info') # only for test
+@app.get('/user')
 async def info(username: loginDepends, session: sessionDepends):
-    query = model.select(model.User)
-    result = await session.execute(query)
-    users = result.scalars().all()
-    print(users[0].username, users[0].__dict__)
-    users = to_model(UserSchema, users)
-    user = to_model(UserSchema, users[0])
-    print(user)
-    return users
+    user = await session.get(model.User, username)
+    if user:
+       user = to_model(UserSchema, user)
+       return user
+    raise HTTPException(500, 'Can not get user')
+    
+
+# @app.get('/info') # only for test
+# async def info(username: loginDepends, session: sessionDepends):
+#     query = model.select(model.User)
+#     result = await session.execute(query)
+#     users = result.scalars().all()
+#     print(users[0].username, users[0].__dict__)
+#     users = to_model(UserSchema, users)
+#     user = to_model(UserSchema, users[0])
+#     print(user)
+#     return users
    
 
 if __name__ == '__main__':

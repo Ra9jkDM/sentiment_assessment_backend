@@ -17,13 +17,13 @@ def create_cipher():
 def encode(username):
     cipher = create_cipher()
     ciphertext, tag = cipher.encrypt_and_digest(username.encode('utf-8'))
-    return base64.b64encode(ciphertext).decode('utf-8')+'.'+ \
+    return base64.b64encode(ciphertext).decode('utf-8').replace('=', '')+'.'+ \
             ''.join(random.choices(all_symbols, k=random.randint(20, 40)))
 
 def decode(data):
     cipher = create_cipher()
     username = data.split('.')[0]
-    username = base64.b64decode(username)
+    username = base64.b64decode(username+'='*3)
     plaintext = cipher.decrypt(username)
     return plaintext.decode('utf-8')
 
