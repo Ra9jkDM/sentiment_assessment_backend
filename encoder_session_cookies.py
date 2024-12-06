@@ -48,11 +48,3 @@ if __name__ == '__main__':
     #     c = create_cipher()
     #     ciphertext, tag = c.encrypt_and_digest('123'.encode('utf-8'))
     
-
-
-# Структура: username.[(random_string)(date_time)(random_string)]
-# закодировано с помощью криптографии (с ключем)
-
-# вторую часть храним в DB и проверяем ее на возможность подмены
-# 1 часть, чтобы быстрее находить
-# завести таблицу в postgress и интегрировать redis

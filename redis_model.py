@@ -28,10 +28,15 @@ async def get_data(redis, key):
         return result.decode('utf-8')
 
 async def set_json(redis, key, json_data):
-    await set_data(key, json.dumps(json_data))
+    await set_data(redis, key, json.dumps(json_data))
 
 async def get_json(redis, key):
-    return await json.loads(get_data(key))
+    data = await get_data(redis, key)
+    if data:
+        return json.loads(data)
+    
+async def delete(redis, key):
+    await redis.delete(key.encode('utf-8'))
     
 async def main():
     client = redis.Redis.from_pool(pool)

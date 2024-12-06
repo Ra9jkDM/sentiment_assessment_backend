@@ -22,38 +22,21 @@ authCookie = Annotated[str | None, Cookie()]
 redisDepends = Annotated[redis_model.redis.Redis, Depends(redis_model.get_client)]
 
 async def is_login(redis: redisDepends, auth: authCookie = None):
-    await redis_model.set_data(redis, 'test', 'df')
-    print(await redis_model.get_data(redis, '1test'))
-    if auth:
-        try:
-            username = get_username(auth)
-            if await check_cookie(auth, redis):
-                return username
-        except:
-            pass
+    obj = await redis_model.get_json(redis, auth)
+    if obj:
+        obj = RedisCookieInfo(**obj)
+        if str_to_date(obj.expire) > datetime.datetime.utcnow():
+            return obj.username
     raise HTTPException(403, 'Not authorized')
 
-def get_username(cookie):
-    username = cookie.split('.')[0]
-    username = session_str.decode(username)
-    return username
-
-async def check_cookie(cookie, redis: redisDepends):
-    # хранить в redis
-    
-    obj = await redis.get(cookie.decode('utf-8'))
-    # obj = await session.get(model.AuthenticationString, cookie)
-    # if obj.expires_date > datetime.datetime.utcnow():
-    #     return True
-    
-    # await session.delete(obj)
-    # await session.commit()
-    # return False
 
 loginDepends = Annotated[str, Depends(is_login)]
 
+
+
 @app.get('/logout')
-async def logout(username: loginDepends):
+async def logout(auth: authCookie, redis: redisDepends):
+    await redis_model.delete(redis, auth)
     res = JSONResponse(content={'status': 'success'})
     return res
 
@@ -69,6 +52,12 @@ class UserSchema(BaseModel):
     
 class UserRegistrationSchema(UserLoginModel, UserSchema):
     salt: str | None = ''
+
+class RedisCookieInfo(BaseModel):
+    username: str
+    expire: str
+    
+    
     
 def to_model(target_cls: BaseModel, obj: list[model.Base] | model.Base):
     if isinstance(obj, list): 
@@ -104,24 +93,30 @@ async def login(session: sessionDepends, redis: redisDepends, login_user: UserLo
             res = JSONResponse(content={'status': 'success'})
             max_age, expires_date = get_coockie_expires_date()
             auth = get_auth_string(user.username)
-            await save_cookie(session, auth, expires_date)
+            await save_cookie(redis, auth, user.username, expires_date)
             res.set_cookie(key='auth', value=auth, max_age=max_age,
-                           expires=expires_date.strftime("%Y-%m-%d %H:%M:%S"))
+                           expires=expires_date)
             return res
     return {'status': 'failure'}
+
+def date_to_str(date):
+    return date.strftime("%Y-%m-%d %H:%M:%S")
+
+def str_to_date(str_date):
+    return datetime.datetime.strptime(str_date, "%Y-%m-%d %H:%M:%S")
 
 def get_coockie_expires_date():
     max_age = 10 * 24 * 60 * 60
     expires_date = datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age)
+    expires_date = date_to_str(expires_date)
     return max_age, expires_date
 
 def get_auth_string(username):
     return session_str.encode(username)
 
-async def save_cookie(session, cookie, expires_date):
+async def save_cookie(redis, cookie, username, expires_date):
     try:
-        session.add(model.AuthenticationString(token=cookie, expires_date=expires_date))
-        await session.commit()
+        await redis_model.set_json(redis, cookie, RedisCookieInfo(username=username, expire=expires_date).dict())
     except:
         raise HTTPException(500, 'Can not create authentication token')
     
@@ -129,7 +124,7 @@ async def save_cookie(session, cookie, expires_date):
     
 
 
-@app.get('/info')
+@app.get('/info') # only for test
 async def info(username: loginDepends, session: sessionDepends):
     query = model.select(model.User)
     result = await session.execute(query)
@@ -140,17 +135,6 @@ async def info(username: loginDepends, session: sessionDepends):
     print(user)
     return users
    
-@app.get('/info_add')
-async def info(id: Annotated[str, Depends(is_login)], session: sessionDepends):
-    user = UserSchema(username='Qann2@mail.com', lastname='Null', firstname='Rob', is_active=False)
-    
-    user = to_sql(model.User, user)
-    user.password = 'n111'
-    user.salt = 'salt1'
-    
-    session.add(user)
-    await session.commit()
-    return {'status': 'success'}
 
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)
