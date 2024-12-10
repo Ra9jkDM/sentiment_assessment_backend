@@ -2,6 +2,11 @@ Backend on fastapi
 ----
 
 
+### Requirements
+
+    pip freeze > requirements.txt
+    pip install -r requirements.txt
+
 ### Start project
 
     export $(cat .env)

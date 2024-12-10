@@ -35,9 +35,7 @@ authCookie = Annotated[str | None, Cookie()]
 redisDepends = Annotated[redis_model.redis.Redis, Depends(redis_model.get_client)]
 
 async def is_login(redis: redisDepends, auth: authCookie):
-    print(auth)
     obj = await redis_model.get_json(redis, auth)
-    print(obj)
     if obj:
         obj = RedisCookieInfo(**obj)
         if str_to_date(obj.expire) > datetime.datetime.utcnow():
