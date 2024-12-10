@@ -8,6 +8,13 @@ password = environ.get("redis_pass")
 pool = redis.ConnectionPool(host='localhost', port=6379, password=password, db=0, protocol=3)
 
 
+def client(func):
+    async def wrapper(*args, **kwargs):
+        client = redis.Redis.from_pool(pool)
+        return await func(client, *args, **kwargs)
+        await client.aclose()
+    return wrapper
+
 async def get_client():
     client = redis.Redis.from_pool(pool)
     yield client
@@ -39,7 +46,9 @@ async def delete(redis, key):
     await redis.delete(key.encode('utf-8'))
     
 async def main():
-    client = redis.Redis.from_pool(pool)
+    # client = redis.Redis.from_pool(pool)
+
+    client = await get_client().__anext__()    
     await client.set('foo', 'bar')
     await client.set('n1', json.dumps({'status': 'ok РУ@'}))
     

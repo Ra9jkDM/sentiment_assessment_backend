@@ -66,6 +66,12 @@ async def main():
 async def get_session():
     async with new_session() as session:
         yield session  
+
+def session(func):
+    async def wrapper(*args, **kwargs):
+        async with new_session() as session:
+            return await func(session, *args, **kwargs)
+    return wrapper
     
 if __name__ == "__main__":
     asyncio.run(main())

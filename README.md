@@ -7,11 +7,14 @@ Backend on fastapi
     pip freeze > requirements.txt
     pip install -r requirements.txt
 
+### Setup environ
+
+    . dev.sh
+
 ### Start project
 
     export $(cat .env)
     python main.py
-
 
 ### Create user in Postgress
 

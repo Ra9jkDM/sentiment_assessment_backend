@@ -1,0 +1,24 @@
+from fastapi import APIRouter
+import services.login as users
+from schemas.user_schemas import UserLoginModel
+from dependencies import authCookie
+from fastapi.responses import JSONResponse
+from dependencies import authCookie
+
+router = APIRouter()
+
+@router.post('/login')
+async def login(login_user: UserLoginModel):
+    result = await users.login(login_user)
+    if result:
+        res = JSONResponse(content={'status': 'success', 'cookie': result['cookie']})
+        res.set_cookie(key=result['key'], value=result['cookie'], max_age=result['max_age'],
+                           expires=result['expires'])
+        return res
+    return {'status': 'failure'}
+
+@router.get('/logout')
+async def logout(auth: authCookie):
+    await users.logout(auth)
+    res = JSONResponse(content={'status': 'success'})
+    return res
