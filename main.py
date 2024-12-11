@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from routers import login, registration, user
+from routers.ml import native_bias
 
 
 app = FastAPI()
@@ -13,7 +14,12 @@ router.include_router(login.router, tags=['login'])
 router.include_router(registration.router, tags=['registration'])
 router.include_router(user.router, tags=['user'])
 
+ml_router = APIRouter(prefix='/ml', tags=['ml models'])
+
+ml_router.include_router(native_bias.router)
+
 app.include_router(router)
+app.include_router(ml_router)
 
 origins = [
     "http://localhost:4200"

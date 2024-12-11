@@ -15,7 +15,7 @@ COOKIE_KEY = 'auth'
 async def login(login_user: user_schemas.UserLoginModel):
     user = await users.get_user(login_user.username)
 
-    if not user:
+    if not user or not user.is_active:
         return False
     
     if compare_passwords(user.password, login_user.password, user.salt):
