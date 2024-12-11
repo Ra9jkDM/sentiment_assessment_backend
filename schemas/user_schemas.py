@@ -11,4 +11,8 @@ class UserSchema(BaseModel):
     is_active: bool
     
 class UserRegistrationSchema(UserLoginModel, UserSchema):
+    pass
+
+
+class UserDTO(UserRegistrationSchema):
     salt: str | None = ''

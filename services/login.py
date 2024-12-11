@@ -17,8 +17,6 @@ async def login(login_user: user_schemas.UserLoginModel):
 
     if not user:
         return False
-
-    user = to_model(user_schemas.UserRegistrationSchema, user)
     
     if compare_passwords(user.password, login_user.password, user.salt):
         max_age, expires_date = _get_coockie_expires_date()
