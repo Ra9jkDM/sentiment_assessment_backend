@@ -3,6 +3,7 @@ from fastapi import Cookie, Depends, HTTPException
 from schemas.redis_cookie_schemas import RedisCookieInfo
 from helpers.converters import str_to_date
 import datetime
+from urllib.parse import unquote
 
 import model
 from repositories import cookie
@@ -10,7 +11,7 @@ from repositories import cookie
 authCookie = Annotated[str | None, Cookie()]
 
 async def is_login(auth: authCookie):
-    obj = await cookie.get_cookie(auth)
+    obj = await cookie.get_cookie(unquote(auth))
 
     if obj:
         obj = RedisCookieInfo(**obj)

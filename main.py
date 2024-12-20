@@ -18,11 +18,12 @@ ml_router = APIRouter(prefix='/ml', tags=['ml models'])
 
 ml_router.include_router(native_bias.router)
 
+router.include_router(ml_router)
 app.include_router(router)
-app.include_router(ml_router)
 
 origins = [
-    "http://localhost:4200"
+    "http://localhost:4200",
+    "http://localhost:8080",
 ]
 
 app.add_middleware(

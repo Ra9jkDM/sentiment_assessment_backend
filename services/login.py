@@ -5,6 +5,7 @@ from helpers.password_hasher import create_new_hash, compare_passwords
 import helpers.encoder_session_cookies as session_str
 from helpers.converters import date_to_str
 import datetime
+from urllib.parse import unquote
 
 from schemas import user_schemas
 
@@ -27,7 +28,7 @@ async def login(login_user: user_schemas.UserLoginModel):
     return False
 
 async def logout(auth_cookie):
-    await cookie.delete_cookie(auth_cookie)
+    await cookie.delete_cookie(unquote(auth_cookie))
     return True
 
 
