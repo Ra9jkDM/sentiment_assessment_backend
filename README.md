@@ -43,6 +43,32 @@ Backend on fastapi
     flushall
 
 
+### Systemd
+
+/lib/systemd/system/sent_analis.service (pgadmin.service)
+sudo chmod 644 file.service
+
+[Unit]
+Description=Sentiment Analis Backend Service
+After=network.target
+
+[Service]
+Type=idle
+Restart=on-failure
+User=den
+ExecStart=/home/den/ml_sen_project/back/start.sh
+
+[Install]
+WantedBy=multi-user.target
+
+#!/bin/bash
+
+cd /home/den/ml_sen_project/back
+export $(cat .env)
+source venv/bin/activate
+python main.py
+
+sudo systemctl daemon-reload
 
 ### Bugs
 
