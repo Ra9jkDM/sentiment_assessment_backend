@@ -13,6 +13,5 @@ class UserSchema(BaseModel):
 class UserRegistrationSchema(UserLoginModel, UserSchema):
     pass
 
-
 class UserDTO(UserRegistrationSchema):
     salt: str | None = ''

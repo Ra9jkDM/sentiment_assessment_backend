@@ -44,6 +44,9 @@ class User(Base):
     
     # role: Mapped["Role"] = relationship()
 
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
     
 async def create_test_data():
     async with AsyncSession(ENGINE, expire_on_commit=False) as db:
