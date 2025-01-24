@@ -27,7 +27,9 @@ async def get_json(client, key):
         return json.loads(data)
     
 async def delete(client, key):
-    await client.delete(key.encode('utf-8'))
+    result = await client.get(key.encode('utf-8'))
+    if result: # if key in db
+        await client.delete(key.encode('utf-8'))
 
 
 async def main():
