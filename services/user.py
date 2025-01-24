@@ -17,3 +17,9 @@ async def update_user(user_info, username):
 async def update_password(username, password):
     password, salt = create_password_and_salt(password)
     return await users.update_password(username, password, salt)
+
+async def delete_account(username):
+    # ToDo
+    # first delete all info id psql db
+    # second delete all files in MinIO
+    return await users.delete_account(username)

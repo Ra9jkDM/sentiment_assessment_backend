@@ -47,6 +47,13 @@ class User(Base):
     def __setitem__(self, key, value):
         setattr(self, key, value)
 
+class Role(Base):
+    __tablename__ = 'role'
+
+    id: Mapped[Integer] = mapped_column(Integer, primary_key=True, unique=True, nullable=False)
+    name: Mapped[String] = mapped_column(String(30), nullable=False)
+
+    # ToDo create relationship
     
 async def create_test_data():
     async with AsyncSession(ENGINE, expire_on_commit=False) as db:

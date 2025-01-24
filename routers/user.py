@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from dependencies import loginDepends
 from services import user
-from schemas.user_schemas import UserSchema
+from schemas.user_schemas import UserSchema, UserPassword
 from response_status import ResponseStatus
 
 
@@ -23,8 +23,15 @@ async def update(username: loginDepends, user_info: UserSchema):
       return ResponseStatus.failure
 
 @router.post('/user/change_password')
-async def change_password(username: loginDepends, password: str):
-   if await user.update_password(username, password):
+async def change_password(username: loginDepends, password: UserPassword):
+   if await user.update_password(username, password.password):
+      return ResponseStatus.success
+   else:
+      return ResponseStatus.failure
+
+@router.post('/user/delete_account')
+async def delete_account(username: loginDepends):
+   if await user.delete_account(username):
       return ResponseStatus.success
    else:
       return ResponseStatus.failure

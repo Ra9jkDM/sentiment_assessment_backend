@@ -39,8 +39,23 @@ async def update_user(session, user_info, username):
 
 @session
 async def update_password(session, username, password, salt):
-    user = await session.get(User, username)
-    user.password = password
-    user.salt = salt
-    await session.commit()
-    return True
+    try:
+        user = await session.get(User, username)
+        user.password = password
+        user.salt = salt
+        await session.commit()
+        return True
+    except:
+        return False
+
+@session
+async def delete_account(session, username):
+    # ToDo (удалить инфу в связанных таблицах)
+    try:
+        user = await session.get(User, username)
+        if user:
+            await session.delete(user)
+            await session.commit()
+            return True
+    except:
+        return False
