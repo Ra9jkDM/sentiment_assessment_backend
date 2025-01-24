@@ -1,6 +1,6 @@
-from model import session, User
+from models.model import session, User
 from schemas.user_schemas import UserDTO
-import model
+from models import model
 from helpers.repo_converters import to_model, from_model
 
 

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from pydantic import parse_obj_as
-import model
+from models import model
 import datetime
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"

@@ -11,6 +11,7 @@ class UserSchema(BaseModel):
     username: EmailStr
     firstname: str = Field(min_length=2, max_length=100)
     lastname: str | None
+    role: str = Field(default='user')
     
 class UserRegistrationSchema(UserLoginModel, UserSchema):
     pass

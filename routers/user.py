@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+from typing import Annotated
+from fastapi import APIRouter, HTTPException, File
+from fastapi.responses import StreamingResponse
 from dependencies import loginDepends
 from services import user
 from schemas.user_schemas import UserSchema, UserPassword
@@ -14,6 +16,27 @@ async def info(username: loginDepends):
     if current_user:
        return current_user
     raise HTTPException(500, 'Can not get user')
+
+@router.get('/user/avatar')
+async def photo(username: loginDepends):
+   try:
+      image = await user.get_photo(username)
+      return StreamingResponse(content = image, media_type='image/img')
+   except:
+      return ResponseStatus.failure
+
+@router.post('/user/avatar/update')
+async def update_photo(username: loginDepends, photo: Annotated[bytes, File()]):
+   if len(photo)/1024**2 < 2: # MB
+      await user.update_photo(username, photo)
+      return ResponseStatus.success
+   else:
+      return ResponseStatus.failure
+
+@router.post('/user/avatar/delete')
+async def delete_photo(username: loginDepends):
+   await user.delete_photo(username)
+
 
 @router.post('/user/update')
 async def update(username: loginDepends, user_info: UserSchema):

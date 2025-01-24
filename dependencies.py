@@ -5,7 +5,7 @@ from helpers.converters import str_to_date
 import datetime
 from urllib.parse import unquote
 
-import model
+from models import model
 from repositories import cookie
 
 authCookie = Annotated[str | None, Cookie()]

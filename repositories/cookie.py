@@ -1,5 +1,5 @@
-import cache_model
-from cache_model import client
+from models import cache_model
+from models.cache_model import client
 
 @client
 async def create_cookie(client, id, cookie):

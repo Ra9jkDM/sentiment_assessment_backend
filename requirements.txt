@@ -30,3 +30,6 @@ uvicorn==0.32.1
 scikit-learn
 natasha
 emcache
+minio
+# minio-async
+miniopy-async
