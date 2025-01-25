@@ -1,9 +1,10 @@
 from helpers.converters import to_model, to_sql
 from repositories import users, users_storage
+from repositories import cookie
 from schemas.user_schemas import UserSchema
 from services.registration import create_password_and_salt
-
 from schemas import user_schemas
+from helpers.encoder_session_cookies import encode as encode_username
 
 async def get_user(username):
     user = await users.get_user(username)
@@ -31,4 +32,8 @@ async def delete_account(username):
     # ToDo
     # first delete all info id psql db
     # second delete all files in MinIO
-    return await users.delete_account(username)
+    if await users.delete_account(username):
+        user = encode_username(username).split('.')[0]
+        await cookie.delete_all_startswith(user+'.*')
+    
+    return True
