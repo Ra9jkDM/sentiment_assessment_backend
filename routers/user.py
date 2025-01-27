@@ -36,6 +36,7 @@ async def update_photo(username: loginDepends, photo: Annotated[bytes, File()]):
 @router.post('/user/avatar/delete')
 async def delete_photo(username: loginDepends):
    await user.delete_photo(username)
+   return ResponseStatus.success
 
 
 @router.post('/user/update')
