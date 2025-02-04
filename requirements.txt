@@ -33,3 +33,6 @@ emcache
 minio
 # minio-async
 miniopy-async
+pandas
+openpyxl
+torch==2.5.1
