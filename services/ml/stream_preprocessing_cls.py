@@ -1,7 +1,7 @@
 from multiprocessing import Process, Manager
 import pandas as pd
-# from services.ml import data_preprocessing
-import data_preprocessing
+from services.ml import data_preprocessing
+# import data_preprocessing
 import queue
 import threading
 import json
@@ -62,6 +62,11 @@ class BackgroundProcessing:
             row[self.TOKENS] = data_preprocessing.text2numbers(row[self.CLEAR_TEXT], self.word_dict)
             return row
         return wrapper
+    
+    def preprocess_simple_text(self, text):
+        clear_text = data_preprocessing.clear_text(str(text))
+        tokens = data_preprocessing.text2numbers(clear_text, self.word_dict)
+        return clear_text, tokens
 
     def preprocess_data_worker(self, data, task_name, part):
         text = data.apply(self._preprocess_text(data.columns[0]), axis=1)

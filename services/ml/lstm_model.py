@@ -1,21 +1,27 @@
 import numpy as np
 import pandas as pd
 import torch
-from stream_preprocessing_cls import BackgroundProcessing, Task, load_data
+# from stream_preprocessing_cls import BackgroundProcessing, Task, load_data
+from services.ml.stream_preprocessing_cls import BackgroundProcessing, Task, load_data
 import json
-from lstm_model_structure import LSTM
+# from lstm_model_structure import LSTM
+from services.ml.lstm_model_structure import LSTM
 from torch.utils.data import Dataset
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
+# model = LSTM(65892, 64, 128, 2, 5165)
+# model.load_state_dict(torch.load('services/ml/models/e5_lstm_web.pt'))
 # model structure in file 'lstm_model_structure.py'
-model = torch.load('models/e5_lstm_web.pt', weights_only=False)
+import __main__
+setattr(__main__, "LSTM", LSTM)
+model = torch.load('services/ml/models/e5_lstm_web.pt', weights_only=False)
 model.eval()
 model = model.to(device)
 
 word_dict = {}
-with open('models/word_dict.json', 'r') as f:
+with open('services/ml/models/word_dict.json', 'r') as f:
     word_dict = json.loads(f.read())
 
 TEXT_LEN = 10
@@ -75,7 +81,21 @@ class OrderedDataLoader:
     def _make_data_same_len(self, batch):
         return set_text_len(batch, len(batch[-1]))
 
-def predict(data):
+def predict(text):
+    clear_text, tokens = bg.preprocess_simple_text(text)
+
+    with torch.no_grad():
+        X = torch.IntTensor([tokens]).to(device)
+        output = model(X)
+        output = output.argmax().cpu()
+
+    return {'text': text,
+            'clear_text': clear_text,
+            'pred': int(output), 
+            'pred_word': 'positive' if output == 1 else 'negative'}
+
+
+def predict_table(data):
     # ToDo: сохранить имя в БД
     task = Task(name='xyz', data=data)
     bg.add_task(task)
