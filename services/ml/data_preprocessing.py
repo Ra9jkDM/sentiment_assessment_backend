@@ -15,6 +15,7 @@ from natasha import (
 
     Doc
 )
+import json
 
 def remove_words(text):
     text = text.replace('[ФИО вырезано модератором]', ' ')
@@ -115,6 +116,20 @@ def clear(text):
 def clear_text(text):
     return ' '.join(clear(text))
 
+def text2numbers(text, dict_): 
+    text = text.split(' ')
+    sequence = []
+
+    for i in text:
+        if i in dict_.keys():
+            sequence.append(dict_[i])
+
+    return sequence
+
+def texts2tokens(row):
+    return [text2numbers(i, dict_=word_dict) for i in row]
+
+
 if __name__ == '__main__':
     example = '''Анна Якубаб «Глорию Скотт»\n@VekshinaI 
     обожаю тебя и наши покатушки на машинке:*\nRT @make_me_strong_: @smille_Tommo
@@ -123,4 +138,12 @@ if __name__ == '__main__':
      .Спасибо Анхель и Хорхе, 7.10.2020 года, конкурс3\n)В. А. Рождественский  
      Школа №321 нам 3.3 года. \n\nМы уже не ждали и не надеялись...\nЗакончил 
      академию BARBER WANTED 15.02.2019 года'''
-    print(clear_text(example))
+    norm_form = clear_text(example)
+    print(norm_form)
+
+    word_dict = {}
+    with open('models/word_dict.json', 'r') as f:
+        word_dict = json.loads(f.read())
+
+    result = text2numbers(norm_form, word_dict)
+    print(result)
