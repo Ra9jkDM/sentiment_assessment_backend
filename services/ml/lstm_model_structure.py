@@ -1,5 +1,5 @@
 import torch.nn as nn
-from torch.nn import Embedding, LSTM, Linear
+from torch.nn import Embedding, Linear
 
 class LSTM(nn.Module):
     def __init__(self, input_size, embedding_dim, hidden_size, output_size, pad_idx, weigths):
