@@ -98,6 +98,11 @@ sudo chown -R 1001:1001 data/ # dir data is empty
 
     EXIT: ctrl+]
 
+#### Kill process on local port
+
+    fuser 8000/tcp # view
+    fuser -k 8000/tcp # kill (tcp or udp)
+
 ### Bugs
 
 #### 1 При входе не давало входить и выбрасывало на экран авторизации
