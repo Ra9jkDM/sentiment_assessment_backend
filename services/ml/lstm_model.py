@@ -25,10 +25,10 @@ async def predict_table(file, ext):
         json_data, file = _split_data(req.content)
         
         # print(json_data)
-        import pandas as pd
-        import io
-        df = pd.read_excel(io.BytesIO(file), engine="openpyxl")
-        print(df)
+        # import pandas as pd
+        # import io
+        # df = pd.read_excel(io.BytesIO(file), engine="openpyxl")
+        # print(df)
         json_data.update(ResponseStatus.success)
         return json_data, file
     except:

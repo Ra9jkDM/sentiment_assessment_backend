@@ -29,11 +29,9 @@ async def update_password(username, password):
     return await users.update_password(username, password, salt)
 
 async def delete_account(username):
-    # ToDo
-    # first delete all info id psql db
-    # second delete all files in MinIO
     if await users.delete_account(username):
         user = encode_username(username).split('.')[0]
         await cookie.delete_all_startswith(user+'.*')
+        await users_storage.delete_user(username)
     
     return True

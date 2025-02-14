@@ -1,3 +1,4 @@
+import models.storage_model as storage_model
 from models.storage_model import profile_upload, profile_get, profile_delete, data_upload, data_get, data_delete
 import io
 
@@ -15,3 +16,6 @@ async def delete_photo(username):
 
 async def save_table(username, name, file):
     await data_upload(username, name, file)
+
+async def delete_user(username):
+    await storage_model.delete_user(username)

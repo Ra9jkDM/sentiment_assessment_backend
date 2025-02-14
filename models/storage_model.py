@@ -1,5 +1,6 @@
 import asyncio
 from miniopy_async import Minio
+from miniopy_async.deleteobjects import DeleteObject
 import aiohttp
 from os import environ
 import io
@@ -51,6 +52,9 @@ async def data_get(username, name):
 async def data_delete(username, name):
     return await _delete_object(f'{username}/{Storage.data.value}/{name}')
 
+async def delete_user(username):
+    return await _recursive_delete(username)
+
 @client
 async def _upload_object(client, session, path, name, data):
     await client.put_object(bucket_name = BUCKET, object_name = f"{path}/{name}",
@@ -65,6 +69,15 @@ async def _get_object(client, session, name):
 async def _delete_object(client, session, name):
     await client.remove_object(bucket_name = BUCKET, object_name = name)
 
+@client
+async def _recursive_delete(client, session, name):
+    objects = map(
+        lambda x: DeleteObject(x.object_name),
+        await client.list_objects(bucket_name = BUCKET, prefix = f'{name}/', recursive=True),
+    )
+    
+    return await client.remove_objects(bucket_name = BUCKET, delete_object_list=objects)
+
 
 async def main():
     # await _upload_object('data', 'text.txt', io.BytesIO(b'12380HHH'))
@@ -74,6 +87,9 @@ async def main():
     await profile_upload('ad.v_@mail.com', 'img.png', io.BytesIO(b'12380HHH'))
     print(await profile_get('ad.v_@mail.com', 'img.png'))
     print(Storage.profile.value, Storage.data)
+
+    # print(dir(Minio))
+    # await delete_user('123U')
 
 
 if __name__ == "__main__":

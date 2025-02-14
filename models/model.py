@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker, AsyncAttrs
 from sqlalchemy import create_engine, Column, Integer, Float, String, Date, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship, mapped_column, Mapped, relationship, backref, selectinload
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, CheckConstraint, func, select
 
 from typing import List
 from datetime import datetime, date
@@ -45,6 +45,9 @@ class User(Base, AsyncAttrs):
     role: Mapped[String] = mapped_column(ForeignKey('role.id', ondelete="CASCADE"))
     role_info: Mapped["Role"] = relationship("Role", back_populates="users", cascade="all, delete", passive_deletes=True)
 
+    text_history: Mapped[List["Text_history"]] = relationship('Text_history', back_populates='user', cascade="all, delete", passive_deletes=True)
+    table_history: Mapped[List["Table_history"]] = relationship('Table_history', back_populates='user', cascade="all, delete", passive_deletes=True)
+
     def __setitem__(self, key, value):
         setattr(self, key, value)
 
@@ -56,7 +59,36 @@ class Role(Base, AsyncAttrs):
 
     users: Mapped[List['User']] = relationship('User', back_populates='role_info')
 
+
+class Results:
+    username: Mapped[String] = mapped_column(ForeignKey('user.username', ondelete="CASCADE"))
+    id: Mapped[Integer] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    date: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    positive: Mapped[Integer] = mapped_column(Integer, nullable=False, default=0)
+    negative: Mapped[Integer] = mapped_column(Integer, nullable=False, default=0)
+    unknown: Mapped[Integer] = mapped_column(Integer, nullable=False, default=0)
+
+
+class Text_history(Results, Base, AsyncAttrs):
+    __tablename__ = 'text_history'
+
+    text: Mapped[String] = mapped_column(String, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="text_history")
+
+class Table_history(Results, Base, AsyncAttrs):
+    __tablename__ = 'table_history'
+
+    file: Mapped[Integer] = mapped_column(Integer, nullable=False)
+
+    user: Mapped["User"] = relationship("User", back_populates="table_history")
     
+    
+
+# Example: type: Mapped[String] = mapped_column(String, CheckConstraint("type IN ('text', 'table')"))
+
+
 async def create_test_data():
     async with AsyncSession(ENGINE, expire_on_commit=False) as db:
         db.add(Role(id='admin', name='Администратор'))
@@ -66,6 +98,15 @@ async def create_test_data():
         db.add(User(username='bob1@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid', role='admin'))
         db.add(User(username='bob2@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid', role='admin'))
         db.add(User(username='ann@mail.com', password='9nw', salt='c', firstname='Ann', role='user'))
+
+        db.add(Text_history(username='bob@mail.com', text='test 123', positive=1))
+        db.add(Text_history(username='bob@mail.com', text='te@@@hedf', negative=1))
+        db.add(Table_history(username='bob@mail.com', file=1, negative=10, positive=1))
+
+        db.add(Text_history(username='ann@mail.com', text='test 123', positive=1))
+        db.add(Text_history(username='ann@mail.com', text='te@@@hedf', negative=1))
+        db.add(Table_history(username='ann@mail.com', file=1, negative=10, positive=1))
+        db.add(Table_history(username='ann@mail.com', file=2, negative=3, positive=60, unknown=10))
         
         await db.commit()
         x = await db.execute(select(User))
@@ -109,4 +150,4 @@ def session(func):
     
 if __name__ == "__main__":
     asyncio.run(main())
-    simple_main()
+    # simple_main()
