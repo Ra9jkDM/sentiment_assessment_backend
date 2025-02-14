@@ -8,6 +8,10 @@ async def get_photo(username):
     data = await profile_get(username, AVATAR)
     return io.BytesIO(await data.read())
 
+async def get_table(username, _id):
+    file = await data_get(username, f'{_id}.xlsx')    
+    return io.BytesIO(await file.read())
+
 async def update_photo(username, image):
     await profile_upload(username, AVATAR, image)
 

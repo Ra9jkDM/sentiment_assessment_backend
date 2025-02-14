@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from dependencies import loginDepends
 from response_status import ResponseStatus
 import repositories.history as history_rep
@@ -20,5 +21,6 @@ async def get_amount_of_records(username: loginDepends, history_type: history.Hi
 
 
 @router.get('/file')
-async def get_file(username: loginDepends):
-    pass
+async def get_file(username: loginDepends, id: int):
+    file = await history.get_file(username, id)
+    return StreamingResponse(content = file, media_type='application/vnd.ms-excel')

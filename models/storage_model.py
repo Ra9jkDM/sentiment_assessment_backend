@@ -63,6 +63,7 @@ async def _upload_object(client, session, path, name, data):
 @client
 async def _get_object(client, session, name):
     response = await client.get_object(bucket_name = BUCKET, object_name = name, session=session)
+    await response.read() # pre-load data before close connection
     return response
 
 @client
