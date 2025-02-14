@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile
 from schemas.ml_schemas import OneText
-from schemas.history import Text_history, Table_history
+from schemas.history import Text_history_user, Table_history_user
 from dependencies import loginDepends
 from response_status import ResponseStatus
 from repositories.users_storage import save_table
@@ -37,7 +37,7 @@ async def predict_table(username: loginDepends, file: UploadFile):
     if ext in ['csv', 'xlsx']:
         json_data, file = await lstm_model.predict_table(file, ext)
         if file:
-            table = Table_history(username=username, file=1, positive=json_data['positive'], 
+            table = Table_history_user(username=username, file=1, positive=json_data['positive'], 
                                     negative=json_data['negative'], unknown=json_data['unknown'])
             file_id = await history.save_table_pred(table)
             if file_id:
