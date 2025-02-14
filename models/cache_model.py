@@ -47,6 +47,9 @@ async def get_json(redis, key):
     
 async def delete(redis, key):
     await redis.delete(key.encode('utf-8'))
+
+async def incr(redis, key):
+    return await redis.incr(key)
     
 async def main():
     # client = redis.Redis.from_pool(pool)
@@ -79,7 +82,7 @@ async def main():
     print('Pattern', await client.hgetall('id:*'))
 
     print(await client.keys('id:*'))
-    
+    print('Counter', await client.incr('counter1'))
     await client.aclose()
 
 if __name__ == '__main__':

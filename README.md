@@ -37,6 +37,7 @@ Backend on fastapi
 
     keys *
     get key
+    set key value
 
 ##### Remove all keys
 
