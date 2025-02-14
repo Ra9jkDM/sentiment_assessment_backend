@@ -1,6 +1,6 @@
 from models.model import session, User
-from sqlalchemy import select
-from schemas.history import Text_history
+from sqlalchemy import select, func
+from schemas.history import Text_history, Table_history
 from models import model
 from helpers.repo_converters import to_model, from_model
 
@@ -8,6 +8,34 @@ from models import cache_model
 from models.cache_model import client
 
 REDIS_TABLE_KEY = 'table_history:{}'
+
+
+@to_model(Text_history)
+@session
+async def get_text_records(session, username, page, amount):
+    return await _get_records(session, model.Text_history, username, page, amount)
+
+@to_model(Table_history)
+@session
+async def get_table_records(session, username, page, amount):
+    return await _get_records(session, model.Table_history, username, page, amount)
+
+
+async def _get_records(session, _type ,username, page, amount):
+    sel = select(_type).where(_type.username == username) \
+                .order_by(_type.date.asc()) \
+                .offset(page*amount).limit(amount)
+    obj = await session.execute(sel)
+    obj = obj.scalars().all()
+    return obj
+
+@session
+async def get_amount_of_text_records(session, username):
+    query = select(func.count()).where(model.Text_history.username == username)
+    result = await session.execute(query)
+    result = result.scalars().first()
+    return result
+
 
 @from_model(model.Text_history)
 @session
