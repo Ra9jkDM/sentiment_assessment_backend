@@ -79,7 +79,7 @@ class Text_history(Results, Base, AsyncAttrs):
 
 class Table_history(Results, Base, AsyncAttrs):
     __tablename__ = 'table_history'
-
+    name: Mapped[String] = mapped_column(String, nullable=False)
     file: Mapped[Integer] = mapped_column(Integer, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="table_history")
@@ -101,12 +101,12 @@ async def create_test_data():
 
         db.add(Text_history(username='bob@mail.com', text='test 123', positive=1))
         db.add(Text_history(username='bob@mail.com', text='te@@@hedf', negative=1))
-        db.add(Table_history(username='bob@mail.com', file=1, negative=10, positive=1))
+        db.add(Table_history(username='bob@mail.com', name='file_1.xlsx', file=1, negative=10, positive=1))
 
         db.add(Text_history(username='ann@mail.com', text='test 123', positive=1))
         db.add(Text_history(username='ann@mail.com', text='te@@@hedf', negative=1))
-        db.add(Table_history(username='ann@mail.com', file=1, negative=10, positive=1))
-        db.add(Table_history(username='ann@mail.com', file=2, negative=3, positive=60, unknown=10))
+        db.add(Table_history(username='ann@mail.com', name='file_2.xlsx', file=1, negative=10, positive=1))
+        db.add(Table_history(username='ann@mail.com', name='file_new(1).xlsx', file=2, negative=3, positive=60, unknown=10))
         
         await db.commit()
         x = await db.execute(select(User))

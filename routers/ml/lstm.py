@@ -33,15 +33,18 @@ async def predict(username: loginDepends, text: OneText):
 
 @router.post('/table')
 async def predict_table(username: loginDepends, file: UploadFile):
-    ext = file.filename.split('.')[-1]
+    filename = file.filename
+    ext = filename.split('.')[-1]
     if ext in ['csv', 'xlsx']:
         json_data, file = await lstm_model.predict_table(file, ext)
         if file:
-            table = Table_history_user(username=username, file=1, positive=json_data['positive'], 
+            table = Table_history_user(username=username, file=1, name=filename, positive=json_data['positive'], 
                                     negative=json_data['negative'], unknown=json_data['unknown'])
             file_id = await history.save_table_pred(table)
             if file_id:
                 await save_table(username, f'{file_id}.xlsx', io.BytesIO(file))
+
+            json_data.update({'file_name': file_id})
 
         return json_data
     else:

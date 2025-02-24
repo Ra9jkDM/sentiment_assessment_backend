@@ -15,6 +15,7 @@ class Text_history(Date):
     unknown: int = Field(default=0, ge=0, le=1)
 
 class Table_history(Date):
+    name: str = Field(min_length=1)
     file: int = Field(ge=1)
 
     positive: int = Field(default=0, ge=0)
