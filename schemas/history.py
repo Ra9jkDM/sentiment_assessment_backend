@@ -3,6 +3,7 @@ from datetime import datetime
 
 class User_data(BaseModel):
     username: EmailStr
+    id: int = None
 
 class Date(BaseModel):
     date: datetime = None

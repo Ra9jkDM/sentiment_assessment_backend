@@ -1,6 +1,6 @@
 from models.model import session, User
 from sqlalchemy import select, func
-from schemas.history import Text_history, Table_history
+from schemas.history import Text_history_user, Table_history_user
 from models import model
 from helpers.repo_converters import to_model, from_model
 
@@ -10,12 +10,12 @@ from models.cache_model import client
 REDIS_TABLE_KEY = 'table_history:{}'
 
 
-@to_model(Text_history)
+@to_model(Text_history_user)
 @session
 async def get_text_records(session, username, page, amount):
     return await _get_records(session, model.Text_history, username, page, amount)
 
-@to_model(Table_history)
+@to_model(Table_history_user)
 @session
 async def get_table_records(session, username, page, amount):
     return await _get_records(session, model.Table_history, username, page, amount)
@@ -23,19 +23,27 @@ async def get_table_records(session, username, page, amount):
 
 async def _get_records(session, _type ,username, page, amount):
     sel = select(_type).where(_type.username == username) \
-                .order_by(_type.date.asc()) \
+                .order_by(_type.date.desc()) \
                 .offset(page*amount).limit(amount)
     obj = await session.execute(sel)
     obj = obj.scalars().all()
     return obj
 
+
+
 @session
 async def get_amount_of_text_records(session, username):
-    query = select(func.count()).where(model.Text_history.username == username)
+    return await get_amount_of_records(session, model.Text_history, username)
+
+@session
+async def get_amount_of_table_records(session, username):
+    return await get_amount_of_records(session, model.Table_history, username)
+
+async def get_amount_of_records(session, _type, username):
+    query = select(func.count()).where(_type.username == username)
     result = await session.execute(query)
     result = result.scalars().first()
     return result
-
 
 @from_model(model.Text_history)
 @session
@@ -91,3 +99,25 @@ async def _get_file_id(client, username):
 async def _set_file_id(client, username, value):
     await cache_model.set_data(client, REDIS_TABLE_KEY.format(username), str(value))
         
+
+@session
+async def delete_text(session, username, _id):
+    return await delete(session, model.Text_history, username, _id)
+
+@session
+async def delete_table(session, username, _id):
+    return await delete(session, model.Table_history, username, _id)
+
+async def delete(session, _type, username, _id):
+    try:
+        sel = select(_type).where((_type.username == username) & 
+        (_type.id == _id)) 
+        obj = await session.execute(sel)
+        obj = obj.scalars().first()
+
+        if obj:
+            await session.delete(obj)
+            await session.commit()
+        return True
+    except:
+        return False
