@@ -13,23 +13,25 @@ router = APIRouter(prefix='/lstm')
 @router.post('/')
 async def predict(username: loginDepends, text: OneText):
     result = await lstm_model.predict(text.text)
+    if result['status'] == 'success':
+        obj = Text_history_user(username=username, text=result['text'])
 
-    obj = Text_history(username=username, text=result['text'])
+        predicted = result['pred']
+        if predicted == 0:
+            obj.negative = 1
+        elif predicted == 1:
+            obj.positive = 1
+        else:
+            obj.unknown = 1
 
-    predicted = result['pred']
-    if predicted == 0:
-        obj.negative = 1
-    elif predicted == 1:
-        obj.positive = 1
+        result = await history.save_text_pred(obj)
+
+        if result:
+            return {**ResponseStatus.success, **obj.dict()}
+        else:
+            return {**ResponseStatus.failure, 'desc': 'Can not save results to database'}
     else:
-        obj.unknown = 1
-
-    result = await history.save_text_pred(obj)
-
-    if result:
-        return {**ResponseStatus.success, **obj.dict()}
-    else:
-        return {**ResponseStatus.failure, 'desc': 'Can not save results to database'}
+         return {**ResponseStatus.failure, 'desc': 'API do not response'}
 
 @router.post('/table')
 async def predict_table(username: loginDepends, file: UploadFile):
