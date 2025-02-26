@@ -3,22 +3,25 @@ from fastapi import APIRouter, Body
 from fastapi.responses import StreamingResponse
 from dependencies import loginDepends
 from response_status import ResponseStatus
-import repositories.history as history_rep
+# import repositories.history as history_rep
 from services import history
+import datetime
 
 router = APIRouter(prefix='/history')
 
-RECORD_AMOUNT_ON_PAGE = 5
+RECORD_AMOUNT_ON_PAGE = 10
 
 
 @router.get('')
-async def get_records(username: loginDepends, history_type: history.HistoryType, page: int):
-    res = await history.get_records(username, history_type, page, RECORD_AMOUNT_ON_PAGE)
+async def get_records(username: loginDepends, history_type: history.HistoryType, page: int, 
+        name: str = '', start_date: datetime.date = None, end_date: datetime.date = None):
+    res = await history.get_records(username, history_type, page, RECORD_AMOUNT_ON_PAGE, name, start_date, end_date)
     return res
 
 @router.get('/length')
-async def get_amount_of_records(username: loginDepends, history_type: history.HistoryType):
-    return await history.get_amount(username, history_type)
+async def get_amount_of_records(username: loginDepends, history_type: history.HistoryType,
+        name: str = '', start_date: datetime.date = None, end_date: datetime.date = None):
+    return await history.get_amount(username, history_type, name, start_date, end_date)
 
 
 @router.get('/file')
