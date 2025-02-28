@@ -11,6 +11,10 @@ router = APIRouter(prefix='/admin')
 async def get_users(username: adminDepends, page: int, name: str = ''): # search by name
     return await admin.get_users(page, name)
 
+@router.get('/users/length')
+async def get_amount_of_users(username: adminDepends, name: str = ''):
+    return await admin.get_amount_of_users(name)
+
 @router.post('/users/create')
 async def create_user(username: adminDepends, new_user: UserRegistrationSchema):
     if await admin.create_user(new_user):
@@ -24,7 +28,7 @@ async def update_user(username: adminDepends, user: UserRegistrationSchema):
     return ResponseStatus.failure
 
 @router.post('/users/delete')
-async def delete_user(username: adminDepends, user: Annotated[str, Body()]):
+async def delete_user(username: adminDepends, user: Annotated[str, Body(embed=True)]):
     result = await admin.delete_user(user)
     
     if result:
@@ -38,7 +42,3 @@ async def activate_user(username: adminDepends, user: Annotated[str, Body()], is
     if result:
         return ResponseStatus.success
     return ResponseStatus.failure
-
-
-# ToDo can edit/delete users + activate/deactivate
-# + 3 functions

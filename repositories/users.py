@@ -31,6 +31,13 @@ async def get_users(session, amount, page, name):
     return objs
 
 @session
+async def get_amount_of_users(session, name):
+    sel = select(func.count()).where(User.username.ilike(f'%{name}%'))
+    objs = await session.execute(sel)
+    objs = objs.scalars().first()
+    return objs
+
+@session
 async def activate_deactivate_user(session, username, is_active):
     try:
         user = await session.get(User, username)
