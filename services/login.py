@@ -24,7 +24,7 @@ async def login(login_user: user_schemas.UserLoginModel):
         auth = _get_auth_string(user.username)
         status = await save_cookie(auth, user.username, expires_date)
         if status:
-            return {'cookie': auth, 'max_age': max_age, 'expires': expires_date, 'key': COOKIE_KEY}
+            return {'cookie': auth, 'max_age': max_age, 'expires': expires_date, 'key': COOKIE_KEY, 'role': user.role}
     return False
 
 async def logout(auth_cookie):

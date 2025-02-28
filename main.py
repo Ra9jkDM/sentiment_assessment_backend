@@ -3,7 +3,7 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from routers import login, registration, user, history
+from routers import login, registration, user, history, admin
 from routers.ml import native_bias, lstm
 
 
@@ -14,6 +14,7 @@ router.include_router(login.router, tags=['login'])
 router.include_router(registration.router, tags=['registration'])
 router.include_router(user.router, tags=['user'])
 router.include_router(history.router, tags=['history'])
+router.include_router(admin.router, tags=['admin'])
 
 ml_router = APIRouter(prefix='/ml', tags=['ml models'])
 

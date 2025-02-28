@@ -12,7 +12,7 @@ router = APIRouter()
 async def login(login_user: UserLoginModel):
     result = await users.login(login_user)
     if result:
-        res = JSONResponse(content={**ResponseStatus.success, 'cookie': result['cookie']})
+        res = JSONResponse(content={**ResponseStatus.success, 'cookie': result['cookie'], 'role': result['role']})
         res.set_cookie(key=result['key'], value=result['cookie'], max_age=result['max_age'],
                            expires=result['expires'])
         return res
