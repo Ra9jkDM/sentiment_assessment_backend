@@ -3,7 +3,7 @@ from services import user as user_services
 from services import registration
 from helpers.password_hasher import create_new_hash
 
-RECORDS_ON_PAGE = 5
+RECORDS_ON_PAGE = 10
 DEFAULT_PASSWORD = '********'
 
 async def get_users(page, name):
@@ -13,10 +13,15 @@ async def get_users(page, name):
 
     user_list = await users.get_users(RECORDS_ON_PAGE, page, name)
 
-    for i in range(len(user_list)):
-        user_list[i].password = DEFAULT_PASSWORD
+    if user_list:
+        for i in range(len(user_list)):
+            user_list[i].password = DEFAULT_PASSWORD
 
-    return user_list
+        return user_list
+    
+
+async def get_amount_of_users(name):
+    return await users.get_amount_of_users(name)
 
 async def activate_deactivate_user(user, is_active):
     return await users.activate_deactivate_user(user, is_active)
