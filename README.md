@@ -47,6 +47,7 @@ Backend on fastapi
 ### Systemd
 
 /lib/systemd/system/sent_analis.service (pgadmin.service)
+/lib/systemd/system/sent_model.service 
 sudo chmod 644 file.service
 
 [Unit]
@@ -130,3 +131,14 @@ Memcache имеет функцию Warm Restart, которая должна п�
 Ошибка в логике при взаимодействии с MinIO соединение закрывалось, а после этого была попытка скачивания содержимого файла. Была добавлена команда предзагрузки файла
 
 - Bug исправлен
+
+#### Удаление файлов более 100MB из репозитория
+
+[BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/)
+
+
+    wget https://repo1.maven.org/maven2/com/madgag/bfg/1.15.0/bfg-1.15.0.jar
+    
+    java -jar bfg-1.15.0.jar -D e3_lstm.pt .
+    java -jar bfg-1.15.0.jar -D e5_lstm_web.pt .
+    git reflog expire --expire=now --all && git gc --prune=now --aggressive
