@@ -16,6 +16,10 @@ Backend on fastapi
     export $(cat .env)
     python main.py
 
+### Default admin user
+
+    sent@admin.com:admin123
+
 ### Create user in Postgress
 
     CREATE DATABASE ml_web;

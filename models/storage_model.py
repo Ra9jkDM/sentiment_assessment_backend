@@ -5,15 +5,18 @@ import aiohttp
 from os import environ
 import io
 from enum import Enum
+from models.environment import get_postfix
 
-HOST = environ.get("s3_host")
-PORT = environ.get("s3_port")
-BUCKET = environ.get("s3_bucket")
+postfix = get_postfix()
+
+HOST = environ.get("s3_host"+postfix)
+PORT = environ.get("s3_port"+postfix)
+BUCKET = environ.get("s3_bucket"+postfix)
 
 # generate in MimIO web console [localhost/access-keys]
-ACCESS_KEY = environ.get("s3_access_key")
-SECRET_KEY = environ.get("s3_secret_key")
-SECURE = int(environ.get("s3_secure")) # Http -> False[0], Https -> True[1]
+ACCESS_KEY = environ.get("s3_access_key"+postfix)
+SECRET_KEY = environ.get("s3_secret_key"+postfix)
+SECURE = int(environ.get("s3_secure"+postfix)) # Http -> False[0], Https -> True[1]
 
 class Storage(Enum):
     profile = 'profile'
@@ -55,6 +58,9 @@ async def data_delete(username, name):
 async def delete_user(username):
     return await _recursive_delete(username)
 
+async def delete_all():
+    return await _delete_all()
+
 @client
 async def _upload_object(client, session, path, name, data):
     await client.put_object(bucket_name = BUCKET, object_name = f"{path}/{name}",
@@ -79,6 +85,13 @@ async def _recursive_delete(client, session, name):
     
     return await client.remove_objects(bucket_name = BUCKET, delete_object_list=objects)
 
+@client
+async def _delete_all(client, session):
+    objs = map(
+        lambda x: DeleteObject(x.object_name),
+        await client.list_objects(bucket_name = BUCKET, recursive=True),
+    )
+    await client.remove_objects(bucket_name = BUCKET, delete_object_list=objs)
 
 async def main():
     # await _upload_object('data', 'text.txt', io.BytesIO(b'12380HHH'))

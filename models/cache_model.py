@@ -2,10 +2,14 @@ import redis.asyncio as redis
 import asyncio
 from os import environ
 import json
+from models.environment import get_postfix
 
-password = environ.get("redis_pass") 
+postfix = get_postfix()
 
-pool = redis.ConnectionPool(host='localhost', port=6379, password=password, db=0, protocol=3)
+port = int(environ.get("redis_port"+postfix))
+password = environ.get("redis_pass"+postfix) 
+
+pool = redis.ConnectionPool(host='localhost', port=port, password=password, db=0, protocol=3)
 
 
 def client(func):
@@ -47,6 +51,12 @@ async def get_json(redis, key):
     
 async def delete(redis, key):
     await redis.delete(key.encode('utf-8'))
+
+async def delete_all_keys(redis):
+    objs = await redis.keys("*")
+    for key in objs:
+        await redis.delete(key)
+
 
 async def incr(redis, key):
     return await redis.incr(key)

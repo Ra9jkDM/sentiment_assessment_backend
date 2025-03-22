@@ -58,7 +58,7 @@ async def update_user(session, user_info, username):
         user = await session.get(User, username)
         updated_user = user_info.model_dump()
         for i in updated_user.keys():
-            if i != 'username' or i!= 'role':
+            if i not in ['username' ,'role']:
                 user[i] = updated_user[i]
 
         await session.commit()

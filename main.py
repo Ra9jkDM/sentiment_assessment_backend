@@ -22,6 +22,11 @@ ml_router.include_router(native_bias.router)
 ml_router.include_router(lstm.router)
 
 router.include_router(ml_router)
+
+@router.get('/version')
+async def get_version():
+    return {'version': 1.1}
+
 app.include_router(router)
 
 origins = [

@@ -11,19 +11,20 @@ from sqlalchemy import create_engine, CheckConstraint, func, select
 from typing import List
 from datetime import datetime, date
 
+from models.environment import get_postfix
+
 from os import environ
 
+postfix = get_postfix()
 
+USERNAME = environ.get("database_username"+postfix) 
+PASSWORD = environ.get("database_password"+postfix)
 
-USERNAME = environ.get("database_username") 
-PASSWORD = environ.get("database_password")
+HOST = environ.get("database_host"+postfix)
+PORT = int(environ.get("database_port"+postfix))
 
-HOST = environ.get("database_host")
-PORT = int(environ.get("database_port"))
-
-DATABASE = environ.get("database_name")
-DIALECT = environ.get("database_dialect")
-
+DATABASE = environ.get("database_name"+postfix)
+DIALECT = environ.get("database_dialect"+postfix)
 
 ENGINE = create_async_engine(f"{DIALECT}://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
 
@@ -128,6 +129,22 @@ async def main():
         await conn.run_sync(Base.metadata.create_all)
     
     await create_test_data()
+
+async def create_db():
+    async with ENGINE.begin() as conn:
+        print(ENGINE.url)
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncSession(ENGINE, expire_on_commit=False) as db:
+        db.add(Role(id='admin', name='Администратор'))
+        db.add(Role(id='user', name='Пользователь'))
+
+        from helpers.password_hasher import create_new_hash
+        password, salt = create_new_hash('admin123')
+        db.add(User(username='sent@admin.com', password=password, salt=salt, firstname='Devid', lastname='LDevid', role='admin'))
+        await db.commit()
+
 
 def simple_main(): # sync
     ENGINE = create_engine(f"postgresql+psycopg2://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
