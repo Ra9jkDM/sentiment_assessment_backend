@@ -42,6 +42,7 @@ Backend on fastapi
     keys *
     get key
     set key value
+    set key value
 
 ##### Remove all keys
 
@@ -103,6 +104,11 @@ sudo chown -R 1001:1001 data/ # dir data is empty
     stats slabs
 
     EXIT: ctrl+]
+
+#### Kill process on local port
+
+    fuser 8000/tcp # view
+    fuser -k 8000/tcp # kill (tcp or udp)
 
 #### Kill process on local port
 
