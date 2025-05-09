@@ -15,6 +15,9 @@ from models.environment import get_postfix
 
 from os import environ
 
+from helpers import password_hasher
+
+
 postfix = get_postfix()
 
 USERNAME = environ.get("database_username"+postfix) 
@@ -95,10 +98,13 @@ async def create_test_data():
         db.add(Role(id='admin', name='Администратор'))
         db.add(Role(id='user', name='Пользователь'))
 
-        db.add(User(username='bob@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid', role='admin'))
-        db.add(User(username='bob1@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid', role='admin'))
-        db.add(User(username='bob2@mail.com', password='12odd', salt='g', firstname='Bob', lastname='Devid', role='admin'))
-        db.add(User(username='ann@mail.com', password='9nw', salt='c', firstname='Ann', role='user'))
+        p, s = password_hasher.create_new_hash('admin123')
+        db.add(User(username='sent@admin.com', password=p, salt=s, firstname='Bob', lastname='Devid', role='admin'))
+        
+        
+        db.add(User(username='bob1@mail.com', password='12odd22222222222222', salt='g22222222222222', firstname='Bob', lastname='Devid', role='admin'))
+        db.add(User(username='bob2@mail.com', password='12odd22222222222222', salt='g22222222222222', firstname='Bob', lastname='Devid', role='admin'))
+        db.add(User(username='ann@mail.com', password='9nw22222222222222', salt='c22222222222222', firstname='Ann', role='user'))
 
         db.add(Text_history(username='bob@mail.com', text='test 123', positive=1))
         db.add(Text_history(username='bob@mail.com', text='te@@@hedf', negative=1))
@@ -115,7 +121,7 @@ async def create_test_data():
         print(x, dir(x[0]))
         print(x[0].username, x[0].role)
     
-        user = await db.get(User, 'bob@mail.com')
+        user = await db.get(User, 'sent@admin.com')
         await db.refresh(user, attribute_names=['role_info'])
         print('Async', user.role_info.name)
 

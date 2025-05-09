@@ -12,6 +12,9 @@ router = APIRouter(prefix='/lstm')
 
 @router.post('/')
 async def predict(username: loginDepends, text: OneText):
+    if len(text.text) == 0:
+         return {**ResponseStatus.failure, 'desc': 'Too short text'}
+
     result = await lstm_model.predict(text.text)
     if result['status'] == 'success':
         obj = Text_history_user(username=username, text=result['text'])
@@ -39,6 +42,7 @@ async def predict_table(username: loginDepends, file: UploadFile):
     ext = filename.split('.')[-1]
     if ext in ['csv', 'xlsx']:
         json_data, file = await lstm_model.predict_table(file, ext)
+        # print(json_data)
         if file:
             table = Table_history_user(username=username, file=1, name=filename, positive=json_data['positive'], 
                                     negative=json_data['negative'], unknown=json_data['unknown'])
