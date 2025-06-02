@@ -51,40 +51,40 @@ Backend on fastapi
 
 ### Systemd
 
-/lib/systemd/system/sent_analis.service (pgadmin.service)
-/lib/systemd/system/sent_model.service 
-sudo chmod 644 file.service
+    /lib/systemd/system/sent_analis.service (pgadmin.service)
+    /lib/systemd/system/sent_model.service 
+    sudo chmod 644 file.service
 
-[Unit]
-Description=Sentiment Analis Backend Service
-After=network.target
+    [Unit]
+    Description=Sentiment Analis Backend Service
+    After=network.target
 
-[Service]
-Type=idle
-Restart=on-failure
-User=den
-ExecStart=/home/den/ml_sen_project/back/start.sh
+    [Service]
+    Type=idle
+    Restart=on-failure
+    User=den
+    ExecStart=/home/den/ml_sen_project/back/start.sh
 
-[Install]
-WantedBy=multi-user.target
+    [Install]
+    WantedBy=multi-user.target
 
-#!/bin/bash
+    #!/bin/bash
 
-cd /home/den/ml_sen_project/back
-export $(cat .env)
-source venv/bin/activate
-python main.py
+    cd /home/den/ml_sen_project/back
+    export $(cat .env)
+    source venv/bin/activate
+    python main.py
 
-sudo systemctl daemon-reload
+    sudo systemctl daemon-reload
 
 ### Memcached
 
 Не сохраняет кеш после перезагрузки (https://docs.memcached.org/features/restart/)
 
-docker exec -it 54949211863b /bin/bash
-ls -ahl /tmp
-id # 1001
-sudo chown -R 1001:1001 data/ # dir data is empty
+    docker exec -it 54949211863b /bin/bash
+    ls -ahl /tmp
+    id # 1001
+    sudo chown -R 1001:1001 data/ # dir data is empty
 
     services:
     memcached:
@@ -114,6 +114,35 @@ sudo chown -R 1001:1001 data/ # dir data is empty
 
     fuser 8000/tcp # view
     fuser -k 8000/tcp # kill (tcp or udp)
+
+#### Настройка Nginx
+
+Внести изменения в файл ```/etc/nginx/sites-enabled/default```
+
+    server {
+            root /var/www/html/sent_analis;
+            index index.html index.htm;
+            server_name domain.com;
+
+            location / {
+                try_files $uri $uri/ /index.html?$args;
+            }
+
+            location /api/ {
+                proxy_pass http://127.0.0.1:8000;
+            }
+
+
+        listen [::]:443 ssl; 
+        listen 443 ssl; 
+
+        # SSL настройки и сертификаты Certbot
+        ssl_certificate /etc/letsencrypt/live/domain.com/fullchain.pem; 
+        ssl_certificate_key /etc/letsencrypt/live/domain.com/privkey.pem;
+        include /etc/letsencrypt/options-ssl-nginx.conf; 
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+    }
+
 
 ### Bugs
 
