@@ -11,6 +11,7 @@ async def predict(text):
     try:
         req = await asyncio.to_thread(requests.post, API+'predict', 
             json={'text': text})
+
         data = json.loads(req.text.replace('\'', '"'))
         data.update(ResponseStatus.success)
         return data
